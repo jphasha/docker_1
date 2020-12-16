@@ -1,51 +1,34 @@
-# FROM debian
+FROM debian
 
-# RUN apt-get update && apt-get upgrade
-# RUN apt-get install -y wget && apt-get install -y tar && apt-get install -y bzip2
-# RUN adduser --disabled-login teamspeak
-# WORKDIR /home/teamspeak
-# RUN wget http://dl.4players.de/ts/releases/3.12.1/teamspeak3-server_linux_amd64-3.12.1.tar.bz2
-# RUN tar xvf teamspeak3-server_linux_amd64-3.12.1.tar.bz2
-# WORKDIR /teamspeak3-server_linux_amd64
-# RUN mv * /home/teamspeak
-# WORKDIR /..
-# RUN rm -rf teamspeak3-server_linux_amd64-3.12.1.tar.bz2
-# RUN touch /home/teamspeak/.ts3server_license_accepted
-# RUN sudo nano /lib/systemd/system/teamspeak.service
+# install the necessary enviromental stuff
+RUN apt-get update && apt-get upgrade -y
+RUN apt-get install -y wget && apt-get install -y tar && apt-get install -y bzip2
 
+# create a user that we will use for the demo
+ENV TS3SERVER_USR="demo_user"
 
-# OTHER PEOPLE STUFF
+# accessing the home directory of the demo user
+WORKDIR /home/teamspeak
 
-# FROM debian
+# download and extract the TeamSpeak3 server
+RUN wget https://files.teamspeak-services.com/releases/server/3.9.1/teamspeak3-server_linux_amd64-3.9.1.tar.bz2 -O teamspeak3-server.tar.bz2
+RUN tar -xvf teamspeak3-server.tar.bz2
+RUN rm teamspeak3-server.tar.bz2
 
-# ENV TS3SERVER_USR="teamspeak_usr"
-# ENV TS3SERVER_GRP="teamspeak_grp"
-# ENV TS3SERVER_LICENSE="accept"
+# accept TeamServer's EULA
+ENV TS3SERVER_LICENSE="accept"
 
-# RUN apt-get update \
-# 	&& apt-get upgrade -y \
-# 	&& apt-get install -y \
-# 	wget \
-# 	tar \
-# 	bzip2
+# expose the TCP port
+EXPOSE 30033
 
-# RUN groupadd $TS3SERVER_GRP && useradd -G $TS3SERVER_GRP $TS3SERVER_USR
+# expose the listening port
+EXPOSE 10011
 
-# RUN wget https://files.teamspeak-services.com/releases/server/3.9.1/teamspeak3-server_linux_amd64-3.9.1.tar.bz2 -O teamspeak3-server.tar.bz2
-# RUN tar -xvf teamspeak3-server.tar.bz2
-# RUN rm teamspeak3-server.tar.bz2
+# expose the server default port
+EXPOSE 9987/udp
 
-# RUN chown -R $TS3SERVER_USR:$TS3SERVER_GRP /teamspeak3-server_linux_amd64 
+# enter the directory containing the server's executable
+WORKDIR teamspeak3-server_linux_amd64
 
-# USER $TS3SERVER_USR:$TS3SERVER_GRP
-
-# RUN chmod -R 774 /teamspeak3-server_linux_amd64
-
-# # Opening file tranfers (tcp) port
-# EXPOSE 30033 
-
-# # Opening listening port
-# EXPOSE 10011
-
-# # Opening server default port
-# EXPOSE 9987/udp
+# run the executable
+ENTRYPOINT sh ts3server_minimal_runscript.sh
